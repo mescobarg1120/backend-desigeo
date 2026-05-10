@@ -49,6 +49,10 @@ private final UserRepository userRepository;
             throw new IllegalArgumentException("User with email already exists");
         }
 
+        if (!isValidRut(createDto.getRut().toUpperCase())) {
+        throw new IllegalArgumentException("Invalid RUT");
+        }
+
         Role role = roleRepository.findByRoleName(createDto.getRoleName())
                 .orElseThrow(() -> new IllegalArgumentException("Role not found"));
 
@@ -56,6 +60,7 @@ private final UserRepository userRepository;
         user.setUserId(UUID.randomUUID());
         user.setEmail(createDto.getEmail().toLowerCase());
         user.setPasswordHash(passwordEncoder.encode(createDto.getPassword()));
+        user.setRut(createDto.getRut().toUpperCase());
         user.setFullName(createDto.getFullName());
         user.setPhone(createDto.getPhone());
         user.setRole(role);
@@ -116,4 +121,22 @@ private final UserRepository userRepository;
         dto.setUpdatedAt(user.getUpdatedAt());
         return dto;
     }
+
+    private boolean isValidRut(String rut) {
+    try {
+        String body = rut.substring(0, rut.length() - 1);
+        char dv = Character.toUpperCase(rut.charAt(rut.length() - 1));
+        int sum = 0;
+        int multiplier = 2;
+        for (int i = body.length() - 1; i >= 0; i--) {
+            sum += Character.getNumericValue(body.charAt(i)) * multiplier;
+            multiplier = multiplier == 7 ? 2 : multiplier + 1;
+        }
+        int remainder = 11 - (sum % 11);
+        char expected = remainder == 11 ? '0' : remainder == 10 ? 'K' : (char) ('0' + remainder);
+        return dv == expected;
+    } catch (Exception e) {
+        return false;
+    }
+}
 }
