@@ -25,8 +25,7 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         "/actuator/",
         "/v3/api-docs",
         "/swagger-ui",
-        "/swagger-ui/",
-        "/api/users"
+        "/swagger-ui/"
     );
 
     private final JwtValidator jwtValidator;
@@ -38,7 +37,12 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getPath();
+        String method = exchange.getRequest().getMethod().name();
 
+        // POST /api/users es público (registro ciudadano)
+        if (path.equals("/api/users") && method.equals("POST")) {
+            return chain.filter(exchange);
+        }
         if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
