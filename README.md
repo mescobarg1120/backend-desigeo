@@ -10,6 +10,7 @@ Sistema de microservicios para la gestión de denuncias ciudadanas a nivel munic
 |---|---|---|
 | api-gateway | 8080 | Punto de entrada único, enrutamiento y seguridad |
 | desigeo-auth-service | 8081 | Autenticación y generación de JWT |
+| desigeo-report-service | 8082 | CRUD de reportes ciudadanos con geolocalización |
 | gestion-de-usuarios | 8087 | CRUD de usuarios |
 
 ---
@@ -152,6 +153,92 @@ Authorization: Bearer {token}
 
 ---
 
+### Crear reporte
+```
+POST /api/reports
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+```json
+{
+  "description": "Descripción del problema (mín. 10 caracteres)",
+  "latitude": -33.4569,
+  "longitude": -70.6483,
+  "address": "Calle Principal 123, Santiago"
+}
+```
+**Respuesta:**
+```json
+{
+  "reportId": "uuid",
+  "status": "PENDING",
+  "createdAt": "2026-05-13T14:44:48.767Z"
+}
+```
+
+---
+
+### Ver reporte
+
+```
+GET /api/reports/{reportId}
+Authorization: Bearer {token}
+```
+
+---
+
+### Listar reportes
+
+```
+GET /api/reports
+Authorization: Bearer {token}
+```
+
+Parámetros opcionales: `status`, `category`, `priority`, `userId`, `startDate`, `endDate`, `lat`, `lng`, `radius`, `page`, `size`
+
+---
+
+### Cambiar estado de reporte
+
+```
+PATCH /api/reports/{reportId}/status
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+```json
+{
+  "status": "IN_PROGRESS",
+  "comment": "Comentario opcional"
+}
+```
+> Estados válidos: `PENDING`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `REOPENED`
+
+---
+
+### Reabrir reporte
+
+```
+POST /api/reports/{reportId}/reopen
+Authorization: Bearer {token}
+Content-Type: application/json
+```
+```json
+{
+  "reason": "Razón de la reapertura"
+}
+```
+
+---
+
+### Reportes por usuario
+
+```
+GET /api/reports/user/{userId}
+Authorization: Bearer {token}
+```
+
+---
+
 ## 👥 Roles del sistema
 
 | Rol | Descripción |
@@ -184,4 +271,6 @@ Importa `postman_collection.json` en Postman para probar todos los endpoints dis
 - Java 17 + Spring Boot 3
 - Spring Security + JWT
 - Spring Data JPA + PostgreSQL (Supabase)
+- Firebase Admin SDK + Firestore (reportes)
+- Supabase Storage (imágenes de reportes)
 - Spring Cloud Gateway

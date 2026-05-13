@@ -146,11 +146,10 @@
 			<version>1.19.0</version>
 		</dependency>
 
-		<!-- HttpClient5 (Nominatim) -->
+		<!-- HttpClient5 (Nominatim) — versión gestionada por Spring Boot BOM -->
 		<dependency>
 			<groupId>org.apache.httpcomponents.client5</groupId>
 			<artifactId>httpclient5</artifactId>
-			<version>5.2.1</version>
 		</dependency>
 
 		<!-- Thumbnailator (compresión imágenes) -->
