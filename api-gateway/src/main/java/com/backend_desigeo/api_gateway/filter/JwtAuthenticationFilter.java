@@ -39,10 +39,14 @@ public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
         String path = exchange.getRequest().getURI().getPath();
         String method = exchange.getRequest().getMethod().name();
 
-        // POST /api/users es público (registro ciudadano)
+        // POST /api/users: público si no trae token, autenticado si trae token (super admin)
         if (path.equals("/api/users") && method.equals("POST")) {
-            return chain.filter(exchange);
-        }
+            String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                return chain.filter(exchange);
+            }
+    // tiene token, cae al flujo normal de validación abajo
+}
         if (isPublicPath(path)) {
             return chain.filter(exchange);
         }
