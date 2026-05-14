@@ -24,7 +24,13 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/api/auth/login", "/actuator/**").permitAll()
+                        .requestMatchers(
+                                "/api/auth/login",
+                                "/api/auth/forgot-password",
+                                "/api/auth/verify-reset-code",
+                                "/api/auth/reset-password",
+                                "/actuator/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class);
