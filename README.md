@@ -62,6 +62,18 @@ cd /home/mario-escobar/Documentos/Github/backend-desigeo/api-gateway
 export $(cat .env | xargs) && ./mvnw spring-boot:run
 ```
 
+En Windows, configura primero las variables de entorno de cada servicio en la misma terminal antes de arrancarlo. Ejemplo en PowerShell para `gestion-de-usuarios`:
+
+```powershell
+Set-Location C:\workspace\Estudio\backend-desigeo\backend-desigeo\gestion-de-usuarios
+$env:SPRING_DATASOURCE_URL = "jdbc:postgresql://aws-1-us-west-2.pooler.supabase.com:6543/postgres"
+$env:SPRING_DATASOURCE_USERNAME = "postgres.xwkcinfiicrquhwtziqg"
+$env:SPRING_DATASOURCE_PASSWORD = "<tu_password_de_supabase>"
+./mvnw spring-boot:run
+```
+
+Si esas variables no están presentes, Spring usa el valor por defecto `jdbc:postgresql://localhost:5432/desigeo_db` y el servicio falla si no tienes PostgreSQL local levantado.
+
 
 ### 4. Detener todos los servicios
 
