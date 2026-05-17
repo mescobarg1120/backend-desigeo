@@ -4,6 +4,7 @@ import com.backend_desigeo.gestion_de_usuarios.entity.RoleName;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -20,6 +21,13 @@ public class UserCreateDto {
 
     @NotBlank(message = "Full name is required")
     private String fullName;
+
+    @NotBlank(message = "RUT is required")
+    @Pattern(
+        regexp = "^[0-9]{7,8}[0-9Kk]$",
+        message = "RUT must be in format 12345678K or 123456789"
+    )
+    private String rut;
 
     @NotNull(message = "Role name is required")
     private RoleName roleName;
@@ -64,5 +72,13 @@ public class UserCreateDto {
 
     public void setPhone(String phone) {
         this.phone = phone;
+    }
+
+    public String getRut() {
+        return rut;
+    }
+
+    public void setRut(String rut) {
+        this.rut = rut;
     }
 }
