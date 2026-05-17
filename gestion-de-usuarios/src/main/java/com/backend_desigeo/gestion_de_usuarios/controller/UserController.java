@@ -61,7 +61,7 @@ public class UserController {
     @PutMapping("/{userId}")
     @Operation(summary = "Update user")
     public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId,
-                                              @Valid @RequestBody UserUpdateDto updateDto) {
+        @Valid @RequestBody UserUpdateDto updateDto) {
         try {
             return userService.updateUser(userId, updateDto)
                     .map(ResponseEntity::ok)

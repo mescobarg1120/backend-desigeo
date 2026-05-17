@@ -63,6 +63,12 @@ application-*.properties
 .env.production
 .env.staging
 
+# Local dev scripts
+start-local.ps1
+
+# Claude Code
+.claude/
+
 # OS
 .DS_Store
 Thumbs.db

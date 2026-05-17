@@ -22,6 +22,9 @@ public class User {
     @Column(name = "passwordhash", nullable = false)
     private String passwordHash;
 
+    @Column(name = "rut", nullable = false, unique = true)
+    private String rut;
+
     @Column(name = "fullname")
     private String fullName;
 
@@ -132,4 +135,10 @@ public class User {
     public boolean isActive() {
         return Boolean.TRUE.equals(active);
     }
+
+    public String getRut() { 
+        return rut; }
+        
+    public void setRut(String rut) { 
+        this.rut = rut; }
 }
