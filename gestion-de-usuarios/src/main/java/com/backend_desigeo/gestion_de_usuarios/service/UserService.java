@@ -87,6 +87,9 @@ private final UserRepository userRepository;
             if (updateDto.getFullName() != null) {
                 user.setFullName(updateDto.getFullName());
             }
+            if (updateDto.getPhone() != null) {
+                user.setPhone(updateDto.getPhone());
+            }
             if (updateDto.getRoleName() != null) {
                 Role role = roleRepository.findByRoleName(updateDto.getRoleName())
                         .orElseThrow(() -> new IllegalArgumentException("Role not found"));
@@ -115,6 +118,8 @@ private final UserRepository userRepository;
         dto.setUserId(user.getUserId());
         dto.setEmail(user.getEmail());
         dto.setFullName(user.getFullName());
+        dto.setRut(user.getRut());
+        dto.setPhone(user.getPhone());
         dto.setRoleName(user.getRole() != null ? user.getRole().getRoleName() : null);
         dto.setActive(user.getActive());
         dto.setCreatedAt(user.getCreatedAt());
