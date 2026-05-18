@@ -19,8 +19,11 @@ import reactor.core.publisher.Mono;
 public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
 
     private static final List<String> PUBLIC_PATHS = List.of(
-        "/api/auth/",
-        "/api/auth",
+        "/api/auth/login",
+        "/api/auth/register",
+        "/api/auth/forgot-password",
+        "/api/auth/verify-reset-code",
+        "/api/auth/reset-password",
         "/actuator",
         "/actuator/",
         "/v3/api-docs",

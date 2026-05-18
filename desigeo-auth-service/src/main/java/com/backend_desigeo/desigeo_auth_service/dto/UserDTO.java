@@ -7,6 +7,8 @@ public class UserDTO {
     private UUID userId;
     private String email;
     private String fullName;
+    private String rut;
+    private String phone;
     private Integer roleId;
     private String roleName;
     private Boolean active;
@@ -33,6 +35,22 @@ public class UserDTO {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getRut() {
+        return rut;
+    }
+
+    public void setRut(String rut) {
+        this.rut = rut;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Integer getRoleId() {

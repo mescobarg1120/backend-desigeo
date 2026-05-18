@@ -1,5 +1,6 @@
 package com.backend_desigeo.desigeo_auth_service.controller;
 
+import com.backend_desigeo.desigeo_auth_service.dto.ChangePasswordRequest;
 import com.backend_desigeo.desigeo_auth_service.dto.CreateUserRequest;
 import com.backend_desigeo.desigeo_auth_service.dto.ForgotPasswordRequest;
 import com.backend_desigeo.desigeo_auth_service.dto.LoginRequest;
@@ -14,7 +15,9 @@ import jakarta.validation.Valid;
 import java.util.Map;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,6 +60,17 @@ public class AuthController {
     @PostMapping("/reset-password")
     public ResponseEntity<Map<String, Boolean>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         passwordResetService.resetPassword(request);
+        return ResponseEntity.ok(Map.of("ok", true));
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Map<String, Boolean>> changePassword(
+            @RequestHeader("X-User-Id") String userEmail,
+            @Valid @RequestBody ChangePasswordRequest request) {
+        passwordResetService.changePassword(
+                userEmail,
+                request.getCurrentPassword(),
+                request.getNewPassword());
         return ResponseEntity.ok(Map.of("ok", true));
     }
 }
