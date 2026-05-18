@@ -123,6 +123,21 @@ public class PasswordResetService {
         log.info("Password reset completed for user: {}", user.getUserId());
     }
 
+    @Transactional
+    public void changePassword(String userEmail, String currentPassword, String newPassword) {
+        User user = userRepository.findByEmailIgnoreCase(userEmail)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+
+        if (!passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+
+        log.info("Password changed for user: {}", user.getUserId());
+    }
+
     private String generateCode() {
         int code = secureRandom.nextInt(900000) + 100000; // 6 dígitos: 100000-999999
         return String.valueOf(code);
