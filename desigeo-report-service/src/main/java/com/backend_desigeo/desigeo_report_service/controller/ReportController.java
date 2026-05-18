@@ -48,6 +48,13 @@ public class ReportController {
                 status, category, priority, userId, startDate, endDate, lat, lng, radius, page, size));
     }
 
+    @PatchMapping("/{reportId}/priority")
+    public ResponseEntity<ReportDetailResponse> updatePriority(
+            @PathVariable String reportId,
+            @Valid @RequestBody UpdatePriorityRequest request) {
+        return ResponseEntity.ok(reportService.updatePriority(reportId, request));
+    }
+
     @PatchMapping("/{reportId}/status")
     public ResponseEntity<ReportDetailResponse> updateStatus(
             @PathVariable String reportId,
