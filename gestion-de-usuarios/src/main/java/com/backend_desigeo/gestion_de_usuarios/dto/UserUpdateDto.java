@@ -10,6 +10,8 @@ public class UserUpdateDto {
 
     private String fullName;
 
+    private String phone;
+
     private RoleName roleName;
 
     private Boolean active;
@@ -28,6 +30,14 @@ public class UserUpdateDto {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public RoleName getRoleName() {
