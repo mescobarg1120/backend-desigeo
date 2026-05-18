@@ -31,6 +31,12 @@ public class User {
     @Column(name = "fullname")
     private String fullName;
 
+    @Column(name = "rut")
+    private String rut;
+
+    @Column(name = "phone")
+    private String phone;
+
     @Column(name = "roleid")
     private Integer roleId;
 
@@ -80,6 +86,22 @@ public class User {
 
     public void setFullName(String fullName) {
         this.fullName = fullName;
+    }
+
+    public String getRut() {
+        return rut;
+    }
+
+    public void setRut(String rut) {
+        this.rut = rut;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
     }
 
     public Integer getRoleId() {
