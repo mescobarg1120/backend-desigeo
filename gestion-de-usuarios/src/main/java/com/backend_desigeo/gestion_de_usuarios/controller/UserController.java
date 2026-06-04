@@ -26,9 +26,14 @@ public class UserController {
 
     @GetMapping
     @Operation(summary = "Get all users")
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<UserDto> users = userService.getAllUsers();
-        return ResponseEntity.ok(users);
+    public ResponseEntity<List<UserDto>> getAllUsers(
+            @RequestParam(required = false) Integer comunaId,
+            @RequestHeader(value = "X-User-Role", required = false) String userRole) {
+        
+        if ("ADMIN_MUNICIPAL".equals(userRole) && comunaId != null) {
+            return ResponseEntity.ok(userService.getUsersByComunaId(comunaId));
+        }
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{userId}")

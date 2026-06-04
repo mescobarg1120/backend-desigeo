@@ -31,6 +31,7 @@ public class ReportService {
             Report report = Report.builder()
                     .userId(userId)
                     .description(request.getDescription())
+                    .category("OTRO")
                     .category(request.getCategory() != null && !request.getCategory().isBlank() ? request.getCategory() : "OTRO")
                     .priority(ReportPriority.MEDIUM.name())
                     .status(ReportStatus.PENDING.name())

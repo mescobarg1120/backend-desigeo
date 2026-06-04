@@ -12,6 +12,7 @@ public class UserDTO {
     private Integer roleId;
     private String roleName;
     private Boolean active;
+    private Integer comunaId;
 
     public UUID getUserId() {
         return userId;
@@ -75,5 +76,13 @@ public class UserDTO {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public Integer getComunaId() {
+    return comunaId;
+    }
+
+    public void setComunaId(Integer comunaId) {
+        this.comunaId = comunaId;
     }
 }

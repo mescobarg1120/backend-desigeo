@@ -4,6 +4,7 @@ import com.backend_desigeo.gestion_de_usuarios.dto.UserCreateDto;
 import com.backend_desigeo.gestion_de_usuarios.dto.UserDto;
 import com.backend_desigeo.gestion_de_usuarios.dto.UserUpdateDto;
 import com.backend_desigeo.gestion_de_usuarios.entity.Role;
+import com.backend_desigeo.gestion_de_usuarios.entity.RoleName;
 import com.backend_desigeo.gestion_de_usuarios.entity.User;
 import com.backend_desigeo.gestion_de_usuarios.repository.RoleRepository;
 import com.backend_desigeo.gestion_de_usuarios.repository.UserRepository;
@@ -91,8 +92,23 @@ private final UserRepository userRepository;
                 user.setPhone(updateDto.getPhone());
             }
             if (updateDto.getRoleName() != null) {
-                Role role = roleRepository.findByRoleName(updateDto.getRoleName())
-                        .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+            Role role = roleRepository.findByRoleName(updateDto.getRoleName())
+                    .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+            
+            // Validar que no haya otro ADMIN_MUNICIPAL en la misma comuna
+            if (RoleName.ADMIN_MUNICIPAL.equals(updateDto.getRoleName())) {
+                Integer comunaId = user.getComunaId();
+                if (comunaId != null) {
+                    boolean yaExiste = userRepository.findByComunaId(comunaId).stream()
+                        .anyMatch(u -> !u.getUserId().equals(userId) &&
+                                u.getRoleId() != null && u.getRoleId() == 3);
+                    if (yaExiste) {
+                        throw new IllegalArgumentException(
+                            "Ya existe un administrador municipal asignado a esta comuna"
+                        );
+                    }
+                }
+            }
                 user.setRole(role);
                 user.setRoleId(role.getRoleId());
             }
@@ -124,6 +140,7 @@ private final UserRepository userRepository;
         dto.setActive(user.getActive());
         dto.setCreatedAt(user.getCreatedAt());
         dto.setUpdatedAt(user.getUpdatedAt());
+        dto.setComunaId(user.getComunaId());
         return dto;
     }
 
@@ -143,5 +160,12 @@ private final UserRepository userRepository;
     } catch (Exception e) {
         return false;
     }
-}
+    }
+
+    public List<UserDto> getUsersByComunaId(Integer comunaId) {
+    return userRepository.findByComunaId(comunaId)
+            .stream()
+            .map(this::mapToDto)
+            .collect(Collectors.toList());
+    }
 }
