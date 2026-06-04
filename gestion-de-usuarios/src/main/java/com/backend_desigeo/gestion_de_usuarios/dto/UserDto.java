@@ -15,6 +15,7 @@ public class UserDto {
     private Boolean active;
     private Instant createdAt;
     private Instant updatedAt;
+    private Integer comunaId;
 
     public UUID getUserId() {
         return userId;
@@ -86,5 +87,13 @@ public class UserDto {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public Integer getComunaId() {
+    return comunaId;
+    }
+
+    public void setComunaId(Integer comunaId) {
+    this.comunaId = comunaId;
     }
 }
