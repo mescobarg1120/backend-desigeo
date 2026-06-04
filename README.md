@@ -459,3 +459,4 @@ El `GatewayAuthFilter` lee estos headers y construye el contexto de seguridad de
 
 - Tabla `audit_logs` + triggers PostgreSQL para auditoría de acciones críticas (cambio de rol, activación/desactivación, login fallido)
 - Endpoint de auditoría para consumo del SUPER_ADMIN
+- Spring Cloud Gateway

@@ -32,6 +32,7 @@ public class ReportService {
                     .userId(userId)
                     .description(request.getDescription())
                     .category("OTRO")
+                    .category(request.getCategory() != null && !request.getCategory().isBlank() ? request.getCategory() : "OTRO")
                     .priority(ReportPriority.MEDIUM.name())
                     .status(ReportStatus.PENDING.name())
                     .latitude(request.getLatitude())
@@ -153,6 +154,24 @@ public class ReportService {
         } catch (Exception e) {
             log.error("Error listando reportes: {}", e.getMessage());
             throw new RuntimeException("Error listando reportes: " + e.getMessage());
+        }
+    }
+
+    public ReportDetailResponse updatePriority(String reportId, UpdatePriorityRequest request) {
+        try {
+            Report report = reportRepository.findById(reportId)
+                    .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+            report.setPriority(request.getPriority().name());
+            reportRepository.update(report);
+
+            return getReport(reportId);
+
+        } catch (ReportNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error actualizando prioridad del reporte {}: {}", reportId, e.getMessage());
+            throw new RuntimeException("Error actualizando prioridad: " + e.getMessage());
         }
     }
 
