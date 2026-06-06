@@ -5,9 +5,11 @@ import com.backend_desigeo.desigeo_report_service.dto.response.*;
 import com.backend_desigeo.desigeo_report_service.enums.ReportPriority;
 import com.backend_desigeo.desigeo_report_service.enums.ReportStatus;
 import com.backend_desigeo.desigeo_report_service.exception.ReportNotFoundException;
+import com.backend_desigeo.desigeo_report_service.model.Comment;
 import com.backend_desigeo.desigeo_report_service.model.Report;
 import com.backend_desigeo.desigeo_report_service.model.ReportHistory;
 import com.backend_desigeo.desigeo_report_service.model.ReportMedia;
+import com.backend_desigeo.desigeo_report_service.repository.CommentRepository;
 import com.backend_desigeo.desigeo_report_service.repository.ReportRepository;
 import com.backend_desigeo.desigeo_report_service.util.GeohashUtil;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
 public class ReportService {
 
     private final ReportRepository reportRepository;
+    private final CommentRepository commentRepository;
     private final ImageService imageService;
 
     public CreateReportResponse createReport(CreateReportRequest request, String userId) {
@@ -204,7 +207,7 @@ public class ReportService {
                     .orElseThrow(() -> new ReportNotFoundException(reportId));
 
             String previousStatus = report.getStatus();
-            report.setStatus(ReportStatus.REOPENED.name());
+            report.setStatus(ReportStatus.REOPEN_REQUESTED.name());
             report.setReopenCount(report.getReopenCount() != null ? report.getReopenCount() + 1 : 1);
             reportRepository.update(report);
 
@@ -237,6 +240,56 @@ public class ReportService {
         } catch (Exception e) {
             log.error("Error obteniendo reportes del usuario {}: {}", targetUserId, e.getMessage());
             throw new RuntimeException("Error obteniendo reportes: " + e.getMessage());
+        }
+    }
+
+    public List<CommentResponse> getComments(String reportId) {
+        try {
+            return commentRepository.findByReportId(reportId).stream()
+                    .map(c -> CommentResponse.builder()
+                            .commentId(c.getCommentId())
+                            .reportId(c.getReportId())
+                            .userId(c.getUserId())
+                            .userName(c.getUserName())
+                            .content(c.getContent())
+                            .createdAt(c.getCreatedAt() != null ? c.getCreatedAt().toInstant().toString() : null)
+                            .build())
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Error obteniendo comentarios del reporte {}: {}", reportId, e.getMessage());
+            throw new RuntimeException("Error obteniendo comentarios: " + e.getMessage());
+        }
+    }
+
+    public CommentResponse addComment(String reportId, AddCommentRequest request, String userId) {
+        try {
+            reportRepository.findById(reportId)
+                    .orElseThrow(() -> new ReportNotFoundException(reportId));
+
+            Comment comment = Comment.builder()
+                    .reportId(reportId)
+                    .userId(userId)
+                    .content(request.getContent())
+                    .userName(request.getUserName())
+                    .isInternal(false)
+                    .build();
+
+            Comment saved = commentRepository.save(comment);
+
+            return CommentResponse.builder()
+                    .commentId(saved.getCommentId())
+                    .reportId(saved.getReportId())
+                    .userId(saved.getUserId())
+                    .userName(saved.getUserName())
+                    .content(saved.getContent())
+                    .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt().toInstant().toString() : null)
+                    .build();
+
+        } catch (ReportNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            log.error("Error agregando comentario al reporte {}: {}", reportId, e.getMessage());
+            throw new RuntimeException("Error agregando comentario: " + e.getMessage());
         }
     }
 
