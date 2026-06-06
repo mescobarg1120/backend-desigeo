@@ -22,6 +22,7 @@ public final class UserMapper {
         dto.setRoleId(user.getRoleId());
         dto.setRoleName(user.getRole() != null ? user.getRole().getRoleName() : null);
         dto.setActive(user.isActive());
+        dto.setComunaId(user.getComunaId());
         return dto;
     }
 }

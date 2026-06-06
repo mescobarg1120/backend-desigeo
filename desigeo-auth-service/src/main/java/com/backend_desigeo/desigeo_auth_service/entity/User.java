@@ -40,6 +40,9 @@ public class User {
     @Column(name = "roleid")
     private Integer roleId;
 
+    @Column(name = "comunaid")
+    private Integer comunaId;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "roleid", insertable = false, updatable = false)
     private Role role;
@@ -90,6 +93,10 @@ public class User {
 
     public String getRut() {
         return rut;
+    }
+
+    public Integer getComunaId() {
+    return comunaId;
     }
 
     public void setRut(String rut) {
@@ -154,5 +161,9 @@ public class User {
 
     public boolean isActive() {
         return Boolean.TRUE.equals(active);
+    }
+    
+    public void setComunaId(Integer comunaId) {
+    this.comunaId = comunaId;
     }
 }
