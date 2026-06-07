@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -84,5 +85,20 @@ public class ReportController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<ReportListResponse> getReportsByUser(@PathVariable String userId) {
         return ResponseEntity.ok(reportService.getReportsByUser(userId));
+    }
+
+    @GetMapping("/{reportId}/comments")
+    public ResponseEntity<List<CommentResponse>> getComments(@PathVariable String reportId) {
+        return ResponseEntity.ok(reportService.getComments(reportId));
+    }
+
+    @PostMapping("/{reportId}/comments")
+    public ResponseEntity<CommentResponse> addComment(
+            @PathVariable String reportId,
+            @Valid @RequestBody AddCommentRequest request,
+            Authentication auth) {
+        String userId = (String) auth.getPrincipal();
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(reportService.addComment(reportId, request, userId));
     }
 }
