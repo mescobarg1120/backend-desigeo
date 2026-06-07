@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# Firebase Credentials
+desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json
+
+# Local environment files
+.env

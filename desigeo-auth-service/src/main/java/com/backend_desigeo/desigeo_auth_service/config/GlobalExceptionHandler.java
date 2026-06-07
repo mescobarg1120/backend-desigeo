@@ -3,6 +3,7 @@ package com.backend_desigeo.desigeo_auth_service.config;
 import com.backend_desigeo.desigeo_auth_service.exception.InvalidCredentialsException;
 import com.backend_desigeo.desigeo_auth_service.exception.UserAlreadyExistsException;
 import com.backend_desigeo.desigeo_auth_service.exception.UserNotFoundException;
+import com.backend_desigeo.desigeo_auth_service.exception.WeakPasswordException;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
@@ -36,6 +37,14 @@ public class GlobalExceptionHandler {
         body.put("error", "invalid_credentials");
         body.put("message", ex.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
+    }
+
+    @ExceptionHandler(WeakPasswordException.class)
+    public ResponseEntity<Map<String, String>> handleWeakPassword(WeakPasswordException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "weak_password");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

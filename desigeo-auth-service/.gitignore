@@ -34,3 +34,6 @@ build/
 
 # Local environment files
 .env
+
+# Firebase Credentials
+desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json
