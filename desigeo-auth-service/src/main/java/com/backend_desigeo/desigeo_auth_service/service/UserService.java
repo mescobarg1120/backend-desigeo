@@ -15,14 +15,19 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final PasswordValidator passwordValidator;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, PasswordValidator passwordValidator) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.passwordValidator = passwordValidator;
     }
 
     @Transactional
     public UserDTO createUser(CreateUserRequest request) {
+        // Validar contraseña segura
+        passwordValidator.validate(request.getPassword());
+        
         if (userRepository.findByEmailIgnoreCase(request.getEmail()).isPresent()) {
             throw new UserAlreadyExistsException("Email already exists: " + request.getEmail());
         }

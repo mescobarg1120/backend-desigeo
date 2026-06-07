@@ -82,5 +82,8 @@ Thumbs.db
 logs/
 
 # GitHub
-.github/desigeo-analytics-service/src/main/resources/serviceAccountKey.json
-desigeo-analytics-service/desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json
+.github/
+
+# Firebase Credentials
+**/desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json
+desigeo-analytics-service/src/main/resources/serviceAccountKey.json
