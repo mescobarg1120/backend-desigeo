@@ -23,6 +23,8 @@ public class CreateReportRequest {
 
     private String category;
 
+    private String comunaNombre;
+
     @Size(max = 5, message = "Máximo 5 imágenes permitidas")
     private List<String> images;
 }
