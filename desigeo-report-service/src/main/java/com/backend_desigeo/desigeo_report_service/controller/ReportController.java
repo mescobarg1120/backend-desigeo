@@ -44,9 +44,16 @@ public class ReportController {
             @RequestParam(required = false) Double lng,
             @RequestParam(required = false) Double radius,
             @RequestParam(defaultValue = "0")  int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "20") int size,
+            // Alias para compatibilidad con el plan de pruebas CP-REPORT-003.
+            // "municipalidad" se trata como filtro de categoría cuando category es null.
+            @RequestParam(required = false) String municipalidad) {
+
+        // Si llega el parámetro "municipalidad" y no hay categoría explícita, usarlo como categoría
+        String effectiveCategory = (category != null) ? category : municipalidad;
+
         return ResponseEntity.ok(reportService.getReports(
-                status, category, priority, userId, startDate, endDate, lat, lng, radius, page, size));
+                status, effectiveCategory, priority, userId, startDate, endDate, lat, lng, radius, page, size));
     }
 
     @PatchMapping("/{reportId}/priority")

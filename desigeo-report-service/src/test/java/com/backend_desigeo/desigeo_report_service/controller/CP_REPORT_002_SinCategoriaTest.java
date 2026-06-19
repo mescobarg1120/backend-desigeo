@@ -28,16 +28,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * CP-REPORT-002 — Rechazar sin categoría válida
- * POST sin categoría → comportamiento esperado: el servicio defaultea a "OTRO" cuando
- * category es null/blank. Si se envía un valor no reconocido, el servicio lanza
- * IllegalArgumentException → GlobalExceptionHandler → 400.
+ * POST sin categoría → 400 Bad Request
+ *
+ * BUG-03 corregido: category ahora tiene @NotBlank en CreateReportRequest.
+ * category=null o category="" retorna 400, no 201.
  *
  * Tipo: JUnit5 / @WebMvcTest
  */
 @WebMvcTest(ReportController.class)
 @Import(TestSecurityConfig.class)
 @ActiveProfiles("test")
-@DisplayName("CP-REPORT-002: Rechazar sin categoría válida")
+@DisplayName("CP-REPORT-002: Rechazar sin categoría válida (BUG-03 corregido)")
 class CP_REPORT_002_SinCategoriaTest {
 
     @Autowired
@@ -56,13 +57,45 @@ class CP_REPORT_002_SinCategoriaTest {
     }
 
     @Test
-    @DisplayName("POST sin categoría → servicio usa 'OTRO' como default → 201 (comportamiento actual)")
-    void sinCategoria_servicioUsaDefault_retorna201() throws Exception {
+    @DisplayName("POST sin categoría (null) → 400 Bad Request (@NotBlank) — BUG-03 corregido")
+    void sinCategoria_retorna400() throws Exception {
         CreateReportRequest request = new CreateReportRequest();
         request.setDescription("Hay basura acumulada en la vereda frente al colegio");
         request.setLatitude(-33.4372);
         request.setLongitude(-70.6506);
-        // category == null
+        // category == null → @NotBlank falla
+
+        mockMvc.perform(post("/api/reports")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(mockAuth(USER_ID)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST con categoría blank (\"\") → 400 Bad Request (@NotBlank) — BUG-03 corregido")
+    void categoriaBlank_retorna400() throws Exception {
+        CreateReportRequest request = new CreateReportRequest();
+        request.setDescription("Luminaria apagada en la esquina de las calles 5 y 6");
+        request.setCategory("");   // blank → @NotBlank falla
+        request.setLatitude(-33.4569);
+        request.setLongitude(-70.6483);
+
+        mockMvc.perform(post("/api/reports")
+                        .with(SecurityMockMvcRequestPostProcessors.authentication(mockAuth(USER_ID)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("POST con categoría válida (BACHE) → 201 Created")
+    void categoriaValida_retorna201() throws Exception {
+        CreateReportRequest request = new CreateReportRequest();
+        request.setDescription("Bache grande en Av. Providencia frente al número 1234");
+        request.setCategory("BACHE");
+        request.setLatitude(-33.4372);
+        request.setLongitude(-70.6506);
 
         CreateReportResponse response = CreateReportResponse.builder()
                 .reportId("report-uuid-cat-001")
@@ -81,32 +114,7 @@ class CP_REPORT_002_SinCategoriaTest {
     }
 
     @Test
-    @DisplayName("POST con categoría blank → servicio usa 'OTRO' como default → 201 (comportamiento actual)")
-    void categoriaBlank_servicioUsaDefault_retorna201() throws Exception {
-        CreateReportRequest request = new CreateReportRequest();
-        request.setDescription("Luminaria apagada en la esquina de las calles 5 y 6");
-        request.setCategory("");
-        request.setLatitude(-33.4569);
-        request.setLongitude(-70.6483);
-
-        CreateReportResponse response = CreateReportResponse.builder()
-                .reportId("report-uuid-cat-002")
-                .status("PENDING")
-                .createdAt(Instant.now().toString())
-                .build();
-
-        when(reportService.createReport(any(CreateReportRequest.class), anyString()))
-                .thenReturn(response);
-
-        mockMvc.perform(post("/api/reports")
-                        .with(SecurityMockMvcRequestPostProcessors.authentication(mockAuth(USER_ID)))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isCreated());
-    }
-
-    @Test
-    @DisplayName("POST con categoría inválida → servicio lanza IllegalArgumentException → 400 Bad Request")
+    @DisplayName("POST con categoría inválida → servicio lanza IllegalArgumentException → 400")
     void categoriaInvalida_lanzaIllegalArgument_retorna400() throws Exception {
         CreateReportRequest request = new CreateReportRequest();
         request.setDescription("Descripción larga con más de diez caracteres aquí");
@@ -117,7 +125,6 @@ class CP_REPORT_002_SinCategoriaTest {
         when(reportService.createReport(any(CreateReportRequest.class), anyString()))
                 .thenThrow(new IllegalArgumentException("Categoría no válida: CATEGORIA_QUE_NO_EXISTE"));
 
-        // GlobalExceptionHandler convierte IllegalArgumentException → 400
         mockMvc.perform(post("/api/reports")
                         .with(SecurityMockMvcRequestPostProcessors.authentication(mockAuth(USER_ID)))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -127,10 +134,10 @@ class CP_REPORT_002_SinCategoriaTest {
     }
 
     @Test
-    @DisplayName("POST con descripción demasiado corta → 400 Bad Request (validación @Size min=10)")
+    @DisplayName("POST con descripción < 10 chars → 400 Bad Request (@Size min=10)")
     void descripcionDemasiadoCorta_retorna400() throws Exception {
         CreateReportRequest request = new CreateReportRequest();
-        request.setDescription("Corto");   // < 10 chars
+        request.setDescription("Corto");
         request.setCategory("BACHE");
         request.setLatitude(-33.4372);
         request.setLongitude(-70.6506);

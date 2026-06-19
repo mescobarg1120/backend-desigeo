@@ -117,12 +117,12 @@ public class AnalyticsService {
     // ── Lista de reportes con filtros ───────────────────────────────
     public Map<String, Object> getReportes(Integer comunaId, String status,
                                             String category, String priority,
+                                            String desde, String hasta,
                                             int page, int size)
             throws ExecutionException, InterruptedException {
 
         Query query = getFirestore().collection("Reports");
 
-        // Filtros opcionales
         if (comunaId != null) {
             query = query.whereEqualTo("comunaId", comunaId);
         }
@@ -138,7 +138,27 @@ public class AnalyticsService {
 
         List<QueryDocumentSnapshot> allDocs = query.get().get().getDocuments();
 
-        // Paginación manual
+        // Filtrado por rango de fechas en memoria (evita necesidad de índice compuesto Firestore)
+        if (desde != null || hasta != null) {
+            java.time.Instant desdeInstant = desde != null
+                    ? java.time.LocalDate.parse(desde).atStartOfDay(java.time.ZoneOffset.UTC).toInstant()
+                    : null;
+            java.time.Instant hastaInstant = hasta != null
+                    ? java.time.LocalDate.parse(hasta).atTime(23, 59, 59).atOffset(java.time.ZoneOffset.UTC).toInstant()
+                    : null;
+
+            allDocs = allDocs.stream()
+                    .filter(doc -> {
+                        java.util.Date createdAt = doc.getDate("createdAt");
+                        if (createdAt == null) return false;
+                        java.time.Instant ts = createdAt.toInstant();
+                        if (desdeInstant != null && ts.isBefore(desdeInstant)) return false;
+                        if (hastaInstant != null && ts.isAfter(hastaInstant))  return false;
+                        return true;
+                    })
+                    .collect(Collectors.toList());
+        }
+
         int total = allDocs.size();
         int fromIndex = Math.min(page * size, total);
         int toIndex   = Math.min(fromIndex + size, total);

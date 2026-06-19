@@ -1,5 +1,6 @@
 package com.backend_desigeo.desigeo_auth_service.config;
 
+import com.backend_desigeo.desigeo_auth_service.exception.AccountLockedException;
 import com.backend_desigeo.desigeo_auth_service.exception.InvalidCredentialsException;
 import com.backend_desigeo.desigeo_auth_service.exception.UserAlreadyExistsException;
 import com.backend_desigeo.desigeo_auth_service.exception.UserNotFoundException;
@@ -28,7 +29,7 @@ public class GlobalExceptionHandler {
         Map<String, String> body = new HashMap<>();
         body.put("error", "email_already_exists");
         body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
@@ -39,12 +40,28 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(body);
     }
 
+    /**
+     * 429 Too Many Requests — cuenta bloqueada por exceder intentos de login.
+     * Este es el uso semánticamente correcto de 429 en este dominio.
+     */
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountLocked(AccountLockedException ex) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", "account_locked");
+        body.put("message", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
+    }
+
+    /**
+     * 400 Bad Request — contraseña no cumple los requisitos de complejidad.
+     * Corregido: era 429 (incorrecto semánticamente).
+     */
     @ExceptionHandler(WeakPasswordException.class)
     public ResponseEntity<Map<String, String>> handleWeakPassword(WeakPasswordException ex) {
         Map<String, String> body = new HashMap<>();
         body.put("error", "weak_password");
         body.put("message", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(body);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

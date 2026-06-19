@@ -21,6 +21,7 @@ public class CreateReportRequest {
 
     private String address;
 
+    @NotBlank(message = "La categoría es obligatoria")
     private String category;
 
     @Size(max = 5, message = "Máximo 5 imágenes permitidas")

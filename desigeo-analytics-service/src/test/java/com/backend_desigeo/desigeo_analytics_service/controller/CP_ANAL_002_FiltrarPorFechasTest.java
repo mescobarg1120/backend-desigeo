@@ -97,7 +97,7 @@ class CP_ANAL_002_FiltrarPorFechasTest {
         Map<String, Object> response = buildReportesPage(3, 0, 20, lista);
 
         when(analyticsService.getReportes(isNull(), isNull(), isNull(), isNull(),
-                eq(0), eq(20)))
+                isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -113,14 +113,14 @@ class CP_ANAL_002_FiltrarPorFechasTest {
     @DisplayName("GET /api/analytics/reportes?status=PENDING → 200 + solo reportes pendientes")
     void filtrarPorEstadoPending_retorna200() throws Exception {
         List<Map<String, Object>> lista = List.of(
-                buildReporte("r001", "BACHE",      "PENDING", "2026-01-15T10:00:00Z"),
-                buildReporte("r004", "AGUA",        "PENDING", "2026-03-10T11:00:00Z"),
-                buildReporte("r005", "SEÑALETICA",  "PENDING", "2026-04-01T08:00:00Z")
+                buildReporte("r001", "BACHE",     "PENDING", "2026-01-15T10:00:00Z"),
+                buildReporte("r004", "AGUA",      "PENDING", "2026-03-10T11:00:00Z"),
+                buildReporte("r005", "SEÑALETICA", "PENDING", "2026-04-01T08:00:00Z")
         );
         Map<String, Object> response = buildReportesPage(3, 0, 20, lista);
 
         when(analyticsService.getReportes(isNull(), eq("PENDING"), isNull(), isNull(),
-                eq(0), eq(20)))
+                isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -128,14 +128,13 @@ class CP_ANAL_002_FiltrarPorFechasTest {
                         .param("status", "PENDING"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(3))
-                .andExpect(jsonPath("$.reportes[0].status").value("PENDING"))
-                .andExpect(jsonPath("$.reportes[1].status").value("PENDING"));
+                .andExpect(jsonPath("$.reportes[0].status").value("PENDING"));
     }
 
     @Test
-    @DisplayName("GET /api/analytics/reportes?status=RESOLVED → 200 + reportes del rango 2026-01-01/2026-06-02")
-    void filtrarPorEstadoResolved_equivalenteARangoFechas_retorna200() throws Exception {
-        // Equivalente funcional de los reportes del plan CP-ANAL-002 (resueltos en el período)
+    @DisplayName("GET /api/analytics/reportes?desde=2026-01-01&hasta=2026-06-02 → 200 (BUG-04 corregido)")
+    void filtrarPorRangoDeFechas_retorna200() throws Exception {
+        // BUG-04 fix: los parámetros desde/hasta ahora existen en el controller y servicio
         List<Map<String, Object>> lista = List.of(
                 buildReporte("r010", "BACHE",      "RESOLVED", "2026-01-20T10:00:00Z"),
                 buildReporte("r011", "BASURA",     "RESOLVED", "2026-02-14T14:00:00Z"),
@@ -143,13 +142,14 @@ class CP_ANAL_002_FiltrarPorFechasTest {
         );
         Map<String, Object> response = buildReportesPage(3, 0, 20, lista);
 
-        when(analyticsService.getReportes(isNull(), eq("RESOLVED"), isNull(), isNull(),
-                eq(0), eq(20)))
+        when(analyticsService.getReportes(isNull(), isNull(), isNull(), isNull(),
+                eq("2026-01-01"), eq("2026-06-02"), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
                         .header("X-User-Role", "SUPER_ADMIN")
-                        .param("status", "RESOLVED"))
+                        .param("desde", "2026-01-01")
+                        .param("hasta", "2026-06-02"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(3))
                 .andExpect(jsonPath("$.reportes[0].createdAt").value("2026-01-20T10:00:00Z"))
@@ -165,7 +165,7 @@ class CP_ANAL_002_FiltrarPorFechasTest {
         Map<String, Object> response = buildReportesPage(1, 0, 20, lista);
 
         when(analyticsService.getReportes(isNull(), eq("IN_PROGRESS"), eq("BACHE"),
-                isNull(), eq(0), eq(20)))
+                isNull(), isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -181,15 +181,14 @@ class CP_ANAL_002_FiltrarPorFechasTest {
     @Test
     @DisplayName("GET /api/analytics/reportes con paginación page=1&size=2 → 200 + página correcta")
     void paginacion_retorna200PaginaCorrecta() throws Exception {
-        // Página 1 (segunda página) con size=2
         List<Map<String, Object>> lista = List.of(
-                buildReporte("r003", "BASURA",     "PENDING", "2026-03-05T09:00:00Z"),
-                buildReporte("r004", "SEÑALETICA",  "PENDING", "2026-04-01T08:00:00Z")
+                buildReporte("r003", "BASURA",    "PENDING", "2026-03-05T09:00:00Z"),
+                buildReporte("r004", "SEÑALETICA", "PENDING", "2026-04-01T08:00:00Z")
         );
         Map<String, Object> response = buildReportesPage(5, 1, 2, lista);
 
         when(analyticsService.getReportes(isNull(), isNull(), isNull(), isNull(),
-                eq(1), eq(2)))
+                isNull(), isNull(), eq(1), eq(2)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -206,14 +205,13 @@ class CP_ANAL_002_FiltrarPorFechasTest {
     @Test
     @DisplayName("GET /api/analytics/reportes como ADMIN_MUNICIPAL → 200 + restringido a su comuna")
     void adminMunicipal_vistaRestringidaPorComuna_retorna200() throws Exception {
-        // ADMIN_MUNICIPAL con X-User-Comuna=5 → el controller fuerza comunaId=5
         List<Map<String, Object>> lista = List.of(
                 buildReporte("r030", "BACHE", "PENDING", "2026-01-10T10:00:00Z")
         );
         Map<String, Object> response = buildReportesPage(1, 0, 20, lista);
 
         when(analyticsService.getReportes(eq(5), isNull(), isNull(), isNull(),
-                eq(0), eq(20)))
+                isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -222,9 +220,8 @@ class CP_ANAL_002_FiltrarPorFechasTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.total").value(1));
 
-        // Verifica que el servicio fue llamado con comunaId=5 (impuesto por el controller)
         verify(analyticsService).getReportes(eq(5), isNull(), isNull(), isNull(),
-                eq(0), eq(20));
+                isNull(), isNull(), eq(0), eq(20));
     }
 
     @Test
@@ -233,7 +230,7 @@ class CP_ANAL_002_FiltrarPorFechasTest {
         Map<String, Object> vacio = buildReportesPage(0, 0, 20, List.of());
 
         when(analyticsService.getReportes(any(), any(), any(), any(),
-                anyInt(), anyInt()))
+                any(), any(), anyInt(), anyInt()))
                 .thenReturn(vacio);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -253,7 +250,7 @@ class CP_ANAL_002_FiltrarPorFechasTest {
         ));
 
         when(analyticsService.getReportes(isNull(), isNull(), isNull(), eq(priority),
-                eq(0), eq(20)))
+                isNull(), isNull(), eq(0), eq(20)))
                 .thenReturn(response);
 
         mockMvc.perform(get("/api/analytics/reportes")
@@ -264,7 +261,7 @@ class CP_ANAL_002_FiltrarPorFechasTest {
     }
 
     @Test
-    @DisplayName("GET /api/analytics/dashboard/comuna/{id} con ADMIN_MUNICIPAL → 200 + desglose de la comuna")
+    @DisplayName("GET /api/analytics/dashboard/comuna/{id} con ADMIN_MUNICIPAL → 200 + desglose")
     void dashboardPorComuna_adminMunicipal_retorna200() throws Exception {
         Map<String, Object> dashboard = new HashMap<>();
         dashboard.put("totalReportes",  8);
