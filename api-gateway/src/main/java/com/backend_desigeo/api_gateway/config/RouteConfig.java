@@ -25,7 +25,7 @@ public class RouteConfig {
                 .uri("http://localhost:8083"))
             .route("ai-service", r -> r.path("/api/ai/**")
                 .uri("http://localhost:8084"))
-            .route("notification-service", r -> r.path("/api/notifications/**")
+            .route("notification-service", r -> r.path("/api/notifications", "/api/notifications/**")
                 .uri("http://localhost:8085"))
             .route("analytics-service", r -> r.path("/api/analytics/**")
                 .uri("http://localhost:8086"))

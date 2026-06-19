@@ -1,5 +1,6 @@
 package com.backend_desigeo.desigeo_report_service.service;
 
+import com.backend_desigeo.desigeo_report_service.client.NotificationClient;
 import com.backend_desigeo.desigeo_report_service.dto.request.*;
 import com.backend_desigeo.desigeo_report_service.dto.response.*;
 import com.backend_desigeo.desigeo_report_service.enums.ReportPriority;
@@ -10,6 +11,7 @@ import com.backend_desigeo.desigeo_report_service.model.Report;
 import com.backend_desigeo.desigeo_report_service.model.ReportHistory;
 import com.backend_desigeo.desigeo_report_service.model.ReportMedia;
 import com.backend_desigeo.desigeo_report_service.repository.CommentRepository;
+import com.backend_desigeo.desigeo_report_service.repository.ComunaRepository;
 import com.backend_desigeo.desigeo_report_service.repository.ReportRepository;
 import com.backend_desigeo.desigeo_report_service.util.GeohashUtil;
 import lombok.RequiredArgsConstructor;
@@ -27,10 +29,22 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final CommentRepository commentRepository;
+    private final ComunaRepository comunaRepository;
     private final ImageService imageService;
+    private final NotificationClient notificationClient;
 
     public CreateReportResponse createReport(CreateReportRequest request, String userId) {
         try {
+            Integer comunaId = null;
+            if (request.getComunaNombre() != null && !request.getComunaNombre().isBlank()) {
+                comunaId = comunaRepository.findByNombreIgnoreCase(request.getComunaNombre())
+                        .map(c -> c.getComunaId())
+                        .orElse(null);
+                if (comunaId == null) {
+                    log.warn("No se encontró la comuna '{}' en la BD", request.getComunaNombre());
+                }
+            }
+
             Report report = Report.builder()
                     .userId(userId)
                     .description(request.getDescription())
@@ -40,6 +54,7 @@ public class ReportService {
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .address(request.getAddress())
+                    .comunaId(comunaId)
                     .geohash(GeohashUtil.encode(request.getLatitude(), request.getLongitude()))
                     .mediaCount(0)
                     .reopenCount(0)
@@ -76,6 +91,9 @@ public class ReportService {
 
             saveHistory(saved.getReportId(), null, ReportStatus.PENDING.name(),
                     "Reporte creado", userId, "CITIZEN", null);
+
+            notificationClient.notifyReportCreated(
+                    saved.getReportId(), userId, saved.getCategory(), saved.getAddress());
 
             return CreateReportResponse.builder()
                     .reportId(saved.getReportId())
@@ -190,6 +208,10 @@ public class ReportService {
             saveHistory(reportId, previousStatus, request.getStatus().name(),
                     request.getComment(), userId, userRole, null);
 
+            notificationClient.notifyStatusChanged(
+                    reportId, report.getUserId(), previousStatus, request.getStatus().name(),
+                    report.getCategory(), report.getAddress());
+
             return getReport(reportId);
 
         } catch (ReportNotFoundException e) {
@@ -213,6 +235,9 @@ public class ReportService {
 
             saveHistory(reportId, previousStatus, ReportStatus.REOPENED.name(),
                     request.getReason(), userId, userRole, request.getReason());
+
+            notificationClient.notifyReopenRequested(
+                    reportId, report.getUserId(), request.getReason());
 
             return getReport(reportId);
 
