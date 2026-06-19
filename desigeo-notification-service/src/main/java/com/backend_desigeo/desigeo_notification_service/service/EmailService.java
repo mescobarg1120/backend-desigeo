@@ -4,6 +4,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 @Slf4j
 public class EmailService {
+
+    private static final int MAX_RETRY_ATTEMPTS = 3;
 
     private final JavaMailSender mailSender;
     private final String fromEmail;
@@ -24,17 +27,23 @@ public class EmailService {
 
     @Async
     public void sendNotificationEmail(String toEmail, String subject, String htmlContent) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
-            helper.setFrom(fromEmail);
-            helper.setTo(toEmail);
-            helper.setSubject(subject);
-            helper.setText(htmlContent, true);
-            mailSender.send(message);
-            log.info("Notification email sent to {}", toEmail);
-        } catch (MessagingException e) {
-            log.error("Failed to send notification email to {}: {}", toEmail, e.getMessage());
+        for (int attempt = 1; attempt <= MAX_RETRY_ATTEMPTS; attempt++) {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+                helper.setFrom(fromEmail);
+                helper.setTo(toEmail);
+                helper.setSubject(subject);
+                helper.setText(htmlContent, true);
+                mailSender.send(message);
+                log.info("Notification email sent to {}", toEmail);
+                return;
+            } catch (MessagingException | MailException e) {
+                log.warn("Attempt {}/{} - Failed to send email to {}: {}", attempt, MAX_RETRY_ATTEMPTS, toEmail, e.getMessage());
+                if (attempt == MAX_RETRY_ATTEMPTS) {
+                    log.error("All {} attempts exhausted. Could not send email to {}", MAX_RETRY_ATTEMPTS, toEmail);
+                }
+            }
         }
     }
 
