@@ -56,6 +56,8 @@ public class AnalyticsController {
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) String priority,
+            @RequestParam(required = false) String desde,
+            @RequestParam(required = false) String hasta,
             @RequestParam(defaultValue = "0")  int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestHeader("X-User-Role") String userRole,
@@ -70,7 +72,7 @@ public class AnalyticsController {
 
         try {
             return ResponseEntity.ok(
-                analyticsService.getReportes(comunaId, status, category, priority, page, size)
+                analyticsService.getReportes(comunaId, status, category, priority, desde, hasta, page, size)
             );
         } catch (Exception e) {
             log.error("Error obteniendo reportes: {}", e.getMessage());

@@ -1,5 +1,6 @@
 package com.backend_desigeo.gestion_de_usuarios.service;
 
+import com.backend_desigeo.gestion_de_usuarios.exception.EmailAlreadyExistsException;
 import com.backend_desigeo.gestion_de_usuarios.dto.UserCreateDto;
 import com.backend_desigeo.gestion_de_usuarios.dto.UserDto;
 import com.backend_desigeo.gestion_de_usuarios.dto.UserUpdateDto;
@@ -47,7 +48,7 @@ private final UserRepository userRepository;
 
     public UserDto createUser(UserCreateDto createDto) {
         if (userRepository.findByEmailIgnoreCase(createDto.getEmail()).isPresent()) {
-            throw new IllegalArgumentException("User with email already exists");
+            throw new EmailAlreadyExistsException(createDto.getEmail());
         }
 
         if (!isValidRut(createDto.getRut().toUpperCase())) {
@@ -81,7 +82,7 @@ private final UserRepository userRepository;
             if (updateDto.getEmail() != null) {
                 if (!updateDto.getEmail().equalsIgnoreCase(user.getEmail()) &&
                     userRepository.findByEmailIgnoreCase(updateDto.getEmail()).isPresent()) {
-                    throw new IllegalArgumentException("User with email already exists");
+                    throw new EmailAlreadyExistsException(updateDto.getEmail());
                 }
                 user.setEmail(updateDto.getEmail().toLowerCase());
             }

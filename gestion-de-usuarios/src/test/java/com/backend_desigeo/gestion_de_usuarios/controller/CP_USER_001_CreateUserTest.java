@@ -112,20 +112,22 @@ class CP_USER_001_CreateUserTest {
 
     @Test
     @WithMockUser
-    @DisplayName("POST /api/users sin email debe retornar 400 Bad Request (validación Bean)")
-    void crearUsuarioSinEmail_retorna400() throws Exception {
-        // Arrange — email ausente, debe fallar la validación @NotBlank
+    @DisplayName("POST /api/users con email duplicado debe retornar 409 Conflict (EmailAlreadyExistsException)")
+    void crearUsuarioEmailDuplicado_retorna409() throws Exception {
         UserCreateDto request = new UserCreateDto();
+        request.setEmail("duplicado@test.cl");
         request.setPassword("Seguro123!");
-        request.setFullName("Sin Email");
+        request.setFullName("Usuario Duplicado");
         request.setRut("123456785");
         request.setRoleName(RoleName.CITIZEN);
 
-        // Act & Assert
+        when(userService.createUser(any(UserCreateDto.class)))
+                .thenThrow(new com.backend_desigeo.gestion_de_usuarios.exception.EmailAlreadyExistsException("duplicado@test.cl"));
+
         mockMvc.perform(post("/api/users")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest());
+                .andExpect(status().isConflict());
     }
 }
