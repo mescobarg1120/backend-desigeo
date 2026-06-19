@@ -21,6 +21,7 @@ public class CreateReportRequest {
 
     private String address;
 
+    @NotBlank(message = "La categoría es obligatoria")
     private String category;
 
     private String comunaNombre;

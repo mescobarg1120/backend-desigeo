@@ -55,25 +55,21 @@ public class UserController {
     @PostMapping
     @Operation(summary = "Create a new user")
     public ResponseEntity<UserDto> createUser(@Valid @RequestBody UserCreateDto createDto) {
-        try {
-            UserDto user = userService.createUser(createDto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(user);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        // EmailAlreadyExistsException → 409 lo maneja GlobalExceptionHandler
+        // IllegalArgumentException (RUT inválido, rol no encontrado) → 400
+        UserDto user = userService.createUser(createDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     @PutMapping("/{userId}")
     @Operation(summary = "Update user")
     public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId,
         @Valid @RequestBody UserUpdateDto updateDto) {
-        try {
-            return userService.updateUser(userId, updateDto)
-                    .map(ResponseEntity::ok)
-                    .orElse(ResponseEntity.notFound().build());
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().build();
-        }
+        // EmailAlreadyExistsException → 409 lo maneja GlobalExceptionHandler
+        // IllegalArgumentException (rol no encontrado, admin municipal duplicado) → 400
+        return userService.updateUser(userId, updateDto)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
     }
 
     @DeleteMapping("/{userId}")
