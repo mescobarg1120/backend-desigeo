@@ -12,7 +12,7 @@ import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Base64;
+import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class FirebaseConfig {
@@ -44,10 +44,9 @@ public class FirebaseConfig {
     }
 
     private InputStream getCredentialsStream() throws IOException {
-        // Prioridad: variable de entorno con JSON en Base64 (Railway)
+        // Prioridad: variable de entorno con JSON directo (Railway)
         if (credentialsJson != null && !credentialsJson.isBlank()) {
-            byte[] decoded = Base64.getDecoder().decode(credentialsJson);
-            return new ByteArrayInputStream(decoded);
+            return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
         }
         // Fallback: archivo local (desarrollo)
         return new FileInputStream(credentialsPath);
