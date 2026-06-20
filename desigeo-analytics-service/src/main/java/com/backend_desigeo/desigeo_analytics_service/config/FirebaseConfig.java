@@ -8,15 +8,20 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Base64;
 
 @Configuration
 public class FirebaseConfig {
 
     @Value("${FIREBASE_CREDENTIALS_PATH:desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json}")
     private String credentialsPath;
+
+    @Value("${FIREBASE_CREDENTIALS_JSON:#{null}}")
+    private String credentialsJson;
 
     @Bean
     @ConditionalOnMissingBean(FirebaseApp.class)
@@ -25,12 +30,22 @@ public class FirebaseConfig {
             return FirebaseApp.getInstance();
         }
 
-        InputStream serviceAccount = new FileInputStream(credentialsPath);
+        InputStream serviceAccount = getCredentialsStream();
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
                 .build();
 
         return FirebaseApp.initializeApp(options);
+    }
+
+    private InputStream getCredentialsStream() throws IOException {
+        // Prioridad: variable de entorno con JSON en Base64 (Railway)
+        if (credentialsJson != null && !credentialsJson.isBlank()) {
+            byte[] decoded = Base64.getDecoder().decode(credentialsJson);
+            return new ByteArrayInputStream(decoded);
+        }
+        // Fallback: archivo local (desarrollo)
+        return new FileInputStream(credentialsPath);
     }
 }
