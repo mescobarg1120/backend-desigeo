@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import java.io.ByteArrayInputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -19,22 +18,43 @@ import java.nio.charset.StandardCharsets;
 @Configuration
 public class FirebaseConfig {
 
-    @Value("${firebase.credentials.path:#{null}}")
-    private String credentialsPath;
+    @Value("${FIREBASE_TYPE}")
+    private String type;
 
-    @Value("${FIREBASE_CREDENTIALS_JSON:#{null}}")
-    private String credentialsJson;
+    @Value("${FIREBASE_PROJECT_ID}")
+    private String firebaseProjectId;
 
-    @Value("${firebase.project.id}")
-    private String projectId;
+    @Value("${FIREBASE_PRIVATE_KEY_ID}")
+    private String privateKeyId;
+
+    @Value("${FIREBASE_PRIVATE_KEY}")
+    private String privateKey;
+
+    @Value("${FIREBASE_CLIENT_EMAIL}")
+    private String clientEmail;
+
+    @Value("${FIREBASE_CLIENT_ID}")
+    private String clientId;
+
+    @Value("${FIREBASE_AUTH_URI}")
+    private String authUri;
+
+    @Value("${FIREBASE_TOKEN_URI}")
+    private String tokenUri;
+
+    @Value("${FIREBASE_AUTH_PROVIDER_CERT_URL}")
+    private String authProviderCertUrl;
+
+    @Value("${FIREBASE_CLIENT_CERT_URL}")
+    private String clientCertUrl;
 
     @PostConstruct
     public void init() throws IOException {
         if (FirebaseApp.getApps().isEmpty()) {
-            InputStream serviceAccount = getCredentialsStream();
+            InputStream serviceAccount = new ByteArrayInputStream(buildCredentialsJson().getBytes(StandardCharsets.UTF_8));
             FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                    .setProjectId(projectId)
+                    .setProjectId(firebaseProjectId)
                     .build();
             FirebaseApp.initializeApp(options);
         }
@@ -45,12 +65,24 @@ public class FirebaseConfig {
         return FirestoreClient.getFirestore();
     }
 
-    private InputStream getCredentialsStream() throws IOException {
-        // Prioridad: variable de entorno con JSON directo (Railway)
-        if (credentialsJson != null && !credentialsJson.isBlank()) {
-            return new ByteArrayInputStream(credentialsJson.getBytes(StandardCharsets.UTF_8));
-        }
-        // Fallback: archivo local (desarrollo)
-        return new FileInputStream(credentialsPath);
+    private String buildCredentialsJson() {
+        String fixedPrivateKey = privateKey.replace("\\n", "\n");
+
+        return """
+                {
+                  "type": "%s",
+                  "project_id": "%s",
+                  "private_key_id": "%s",
+                  "private_key": "%s",
+                  "client_email": "%s",
+                  "client_id": "%s",
+                  "auth_uri": "%s",
+                  "token_uri": "%s",
+                  "auth_provider_x509_cert_url": "%s",
+                  "client_x509_cert_url": "%s",
+                  "universe_domain": "googleapis.com"
+                }
+                """.formatted(type, firebaseProjectId, privateKeyId, fixedPrivateKey,
+                clientEmail, clientId, authUri, tokenUri, authProviderCertUrl, clientCertUrl);
     }
 }
