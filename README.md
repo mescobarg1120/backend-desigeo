@@ -11,7 +11,11 @@ Sistema de microservicios para la gestión de denuncias ciudadanas a nivel munic
 | api-gateway | 8080 | Punto de entrada único, enrutamiento y seguridad |
 | desigeo-auth-service | 8081 | Autenticación y generación de JWT |
 | desigeo-report-service | 8082 | CRUD de reportes ciudadanos con geolocalización |
-| gestion-de-usuarios | 8087 | CRUD de usuarios |
+| desigeo-support-service | 8083 | Tickets de soporte y atención al usuario |
+| desigeo-ai-agent-service | 8084 | Agente IA para asistencia automatizada |
+| desigeo-notification-service | 8085 | Notificaciones push y por correo |
+| desigeo-analytics-service | 8086 | Dashboard y métricas de reportes (Firestore) |
+| gestion-de-usuarios | 8087 | CRUD de usuarios y comunas |
 
 ---
 
@@ -283,9 +287,11 @@ Importa `postman_collection.json` en Postman para probar todos los endpoints dis
 - Java 17 + Spring Boot 3
 - Spring Security + JWT
 - Spring Data JPA + PostgreSQL (Supabase)
-- Firebase Admin SDK + Firestore (reportes)
+- Firebase Admin SDK + Firestore (reportes y analytics)
 - Supabase Storage (imágenes de reportes)
 - Spring Cloud Gateway
+- Spring Data Redis (caché)
+- Apache POI + Commons CSV (exportación de datos)
 
 
 
@@ -294,6 +300,28 @@ Importa `postman_collection.json` en Postman para probar todos los endpoints dis
 
 
 
+
+## 📊 Analytics Service (desigeo-analytics-service)
+
+Servicio de métricas y dashboards. **Usa Firestore** (no PostgreSQL) como fuente de datos de reportes.
+
+### Requisitos adicionales
+
+- Archivo de credenciales Firebase (`desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json`) en la raíz del servicio
+- Variable `FIREBASE_CREDENTIALS_PATH` en el `.env` apuntando al archivo
+
+### Endpoints
+
+| Método | Ruta | Rol requerido | Descripción |
+|--------|------|---------------|-------------|
+| `GET` | `/api/analytics/dashboard/global` | `SUPER_ADMIN` | Dashboard global con métricas consolidadas |
+| `GET` | `/api/analytics/dashboard/comuna/{comunaId}` | `SUPER_ADMIN`, `ADMIN_MUNICIPAL` | Dashboard filtrado por comuna |
+| `GET` | `/api/analytics/reportes` | Autenticado | Lista de reportes con filtros y paginación |
+| `GET` | `/api/analytics/categorias` | Autenticado | Categorías disponibles para filtros |
+
+**Parámetros de `/api/analytics/reportes`:** `comunaId`, `status`, `category`, `priority`, `desde`, `hasta`, `page`, `size`
+
+---
 
 #####  Actaulizacion para perfil super_admin en analitics
 
