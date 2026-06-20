@@ -3,16 +3,20 @@ package com.backend_desigeo.desigeo_analytics_service.config;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
+
+    @Value("${FIREBASE_CREDENTIALS_PATH:desigeo-3c4af-firebase-adminsdk-fbsvc-f65a774ca4.json}")
+    private String credentialsPath;
 
     @Bean
     @ConditionalOnMissingBean(FirebaseApp.class)
@@ -21,7 +25,7 @@ public class FirebaseConfig {
             return FirebaseApp.getInstance();
         }
 
-        InputStream serviceAccount = new ClassPathResource("serviceAccountKey.json").getInputStream();
+        InputStream serviceAccount = new FileInputStream(credentialsPath);
 
         FirebaseOptions options = FirebaseOptions.builder()
                 .setCredentials(GoogleCredentials.fromStream(serviceAccount))
